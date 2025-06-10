@@ -1,7 +1,5 @@
 <?php
 
-namespace App\Services;
-
 /**
  * 
  *  Classe para genrenciamento de um carrinho de compras básico.
@@ -13,6 +11,11 @@ namespace App\Services;
 class CartService
 {
     private array $items;
+
+    private array $available_payment_methods = [
+        'pix', 
+        'credit',
+    ];
 
     private string $payment_method;
     private int $installment_quantity;
@@ -34,11 +37,11 @@ class CartService
 
         foreach ($items as $item_index => $item)
         {
-            if (!isset($item['name'])) throw new Exception('Item #'.$item_index.' => O nome do item é obrigatório!');
-            else if (!isset($item['unit_price'])) throw new Exception('Item #'.$item_index.' => O preço unitário do item é obrigatório!');
-            else if ($item['unit_price'] < 0) throw new Exception('Item #'.$item_index.' => O preço unitário do item não pode ser um valor negativo!');
-            else if (!isset($item['quantity'])) throw new Exception('Item #'.$item_index.' => A quantidade do item é obrigatória!');
-            else if ($item['quantity'] < 0) throw new Exception('Item #'.$item_index.' => A quantidade do item não pode ser um valor negativo!');
+            if (!isset($item['name'])) throw new \Exception('Item #'.$item_index.' => O nome do item é obrigatório!');
+            else if (!isset($item['unit_price'])) throw new \Exception('Item #'.$item_index.' => O preço unitário do item é obrigatório!');
+            else if ($item['unit_price'] < 0) throw new \Exception('Item #'.$item_index.' => O preço unitário do item não pode ser um valor negativo!');
+            else if (!isset($item['quantity'])) throw new \Exception('Item #'.$item_index.' => A quantidade do item é obrigatória!');
+            else if ($item['quantity'] < 0) throw new \Exception('Item #'.$item_index.' => A quantidade do item não pode ser um valor negativo!');
             else 
             {
                 $new_items[] = [
@@ -53,18 +56,20 @@ class CartService
         return true;
     }
 
+    public function getAvailablePaymentMethods() : array
+    {
+        return $this->available_payment_methods;
+    }
+
     public function getPaymentMethod() : string
     {
         return $this->payment_method;
     }
     public function setPaymentMethod(string $payment_method) : bool
     {
-        $available_payment_methods = [
-            'pix', 
-            'credit'
-        ];
+        $available_payment_methods = $this->getAvailablePaymentMethods();
 
-        if (!in_array($payment_method, $available_payment_methods)) throw new Exception('O método de pagamento informado não é válido! Métodos de pagamento disponíveis: '.implode(', ', $available_payment_methods));
+        if (!in_array($payment_method, $available_payment_methods)) throw new \Exception('O método de pagamento informado não é válido! Métodos de pagamento disponíveis: '.implode(', ', $available_payment_methods));
         else $this->payment_method = $payment_method;
 
         return true;
@@ -78,10 +83,10 @@ class CartService
     {
         switch ($this->getPaymentMethod())
         {
-            case 'pix': if (!($installment_quantity === 1)) throw new Exception('A quantidade de parcelas está inválida! Para o método de pagamento pix a quantidade de parcelas deve ser 1.');
+            case 'pix': if (!($installment_quantity === 1)) throw new \Exception('A quantidade de parcelas está inválida! Para o método de pagamento pix a quantidade de parcelas deve ser 1.');
             break;
 
-            case 'credit': if (!(2 <= $installment_quantity && $installment_quantity <= 12)) throw new Exception('A quantidade de parcelas está inválida! Para o método de pagamento pix a quantidade de parcelas deve ser entre 1 e 12.');
+            case 'credit': if (!(2 <= $installment_quantity && $installment_quantity <= 12)) throw new \Exception('A quantidade de parcelas está inválida! Para o método de pagamento pix a quantidade de parcelas deve ser entre 1 e 12.');
             break;
         }
 
@@ -109,27 +114,3 @@ class CartService
         return $final_value;
     }
 }
-
-$items = [
-    [
-        'name' => 'Produto 01',
-        'unit_price' => 20.6,
-        'quantity' => 3,
-    ],
-    [
-        'name' => 'Produto 02',
-        'unit_price' => 30.3,
-        'quantity' => 1,
-    ],
-    [
-        'name' => 'Produto 03',
-        'unit_price' => 50.7,
-        'quantity' => 2,
-    ],
-];
-
-$method = 'credit';
-$installments = 12;
-
-$cart = new CartService($items, $method, $installments);
-var_dump($cart->getFinalValue());
